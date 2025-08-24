@@ -1,30 +1,48 @@
-import { useRouter } from "expo-router";
+import { Router, useRouter } from "expo-router";
 import React from "react";
-import { StyleSheet, TextInput, View } from "react-native";
-import { Button } from '../components/Button';
-import { commonStyles } from '../styles/common';
+import {  TextInput, View } from "react-native";
+import { Button } from "../components/Button";
+import { usePlayerToken } from "../hooks/usePlayerToken";
+import { commonStyles } from "../styles/common";
+import { joinRoomRequest } from "../Requests/JoinRoomRequest";
+import { styles } from "../styles/ScreenStyles/HomeScreenStyle";
+
+const handleJoinRoom = (
+  roomId: string,
+  token: string,
+  router: Router,
+  name: string
+) => {
+  if (!name.trim() || !roomId.trim()) return;
+
+  joinRoomRequest(roomId, token, name).then((data) => {
+    if (!data) {
+      console.error("No data received from joinRoom");
+      return;
+    }
+    
+    router.push({
+      pathname: "./Room",
+      params: { token: roomId.trim().toUpperCase() },
+    });
+  });
+};
 
 export default function Home() {
   const router = useRouter();
-  const [name, setName] = React.useState('');
-  const [roomId, setRoomId] = React.useState('');
-  
+  const [name, setName] = React.useState("");
+  const [roomId, setRoomId] = React.useState("");
+  const token = usePlayerToken();
   const handleCreateRoom = () => {
     router.push({
-      pathname: './CreateRoom',
-      params: { userName: name }
+      pathname: "./CreateRoom",
+      params: { userName: name },
     });
   };
-
-  const handleJoinRoom = () => {
-    if (!name.trim() || !roomId.trim()) return; // Don't proceed if either field is empty
-    console.log('Joining room:', roomId);
-  };
-  
   return (
     <View style={commonStyles.container}>
       <View style={styles.inputSection}>
-        <TextInput 
+        <TextInput
           value={name}
           onChangeText={setName}
           style={[commonStyles.input, styles.input]}
@@ -34,7 +52,7 @@ export default function Home() {
         />
 
         <View style={styles.joinSection}>
-          <TextInput 
+          <TextInput
             value={roomId}
             onChangeText={setRoomId}
             style={[commonStyles.input, styles.input]}
@@ -42,15 +60,17 @@ export default function Home() {
             placeholderTextColor="#666"
             autoCapitalize="characters"
           />
-          <Button 
+          <Button
             title="Join Room"
-            onPress={handleJoinRoom}
+            onPress={() =>
+              handleJoinRoom(roomId, token ? token : "", router, name)
+            }
             style={styles.joinButton}
           />
         </View>
       </View>
 
-      <Button 
+      <Button
         title="Create New Room"
         onPress={handleCreateRoom}
         variant="secondary"
@@ -59,25 +79,3 @@ export default function Home() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  inputSection: {
-    width: '100%',
-    gap: 20,
-  },
-  input: {
-    marginBottom: 0,
-  },
-  joinSection: {
-    width: '100%',
-    gap: 12,
-  },
-  joinButton: {
-    width: '100%',
-  },
-  createButton: {
-    width: '100%',
-    marginTop: 'auto',
-    marginBottom: 20,
-  },
-});
