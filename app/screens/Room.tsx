@@ -36,6 +36,7 @@ export default function Room() {
       const parsed: PlayerScore[] = JSON.parse(event.data);
       setPlayers(parsed);
     };
+    eventSource.addEventListener("message", handleMessage);
     return () => {
       eventSource.removeEventListener("message", handleMessage);
       eventSource.close();
